@@ -2,7 +2,7 @@ class Logger {
     constructor() {
         this.logs = [];
     }
-    getCount() {
+    get count() {
         return this.logs.length;
     }
     log(message) {
