@@ -1,13 +1,9 @@
-Adapter
+Abstract Factory
 
-Bridge
+Builder
 
-Composite
+Factory Method
 
-Decorator
+Prototype
 
-Facade
-
-Flyweight
-
-Proxy
+Singleton

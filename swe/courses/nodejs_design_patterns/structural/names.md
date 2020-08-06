@@ -1,21 +1,13 @@
-Chain of Responsibility
+Adapter
 
-Command
+Bridge
 
-Interpreter
+Composite
 
-Iterator
+Decorator
 
-Mediator
+Facade
 
-Memento
+Flyweight
 
-Observer
-
-State
-
-Strategy
-
-Template Method
-
-Visitor
+Proxy
