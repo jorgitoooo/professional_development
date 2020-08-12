@@ -1,6 +1,16 @@
 const Tour = require('../models/tourModel');
 const { STATUS } = require('../constants');
 
+exports.aliasTopTours = (req, res, next) => {
+  const query = {
+    limit: '5',
+    sort: 'price,-ratingsAverage',
+    fields: 'name,price,ratingsAverage,summary,difficulty',
+  };
+  req.query = query;
+  next();
+};
+
 exports.getAllTours = async (req, res) => {
   try {
     // Build query object
@@ -33,14 +43,14 @@ exports.getAllTours = async (req, res) => {
     }
 
     // Removes '__v' field from query
-    if (!fields.includes('-__v')) {
-      if (fields.includes('__v')) {
-        fields = fields.replace('__v', '-__v');
-      } else {
-        fields = fields.concat(' -__v');
-      }
-    }
-    console.log(fields);
+    // ERROR: Cannot have a mix of inclusion and exclusion
+    // if (!fields.includes('-__v')) {
+    //   if (fields.includes('__v')) {
+    //     fields = fields.replace('__v', '-__v');
+    //   } else {
+    //     fields = fields.concat(' -__v');
+    //   }
+    // }
     query = query.select(fields);
 
     // 4) Pagination
