@@ -1,4 +1,5 @@
 const Tour = require('../models/tourModel');
+const { QueryBuilder } = require('../utils');
 const { STATUS } = require('../constants');
 
 exports.aliasTopTours = (req, res, next) => {
@@ -13,67 +14,14 @@ exports.aliasTopTours = (req, res, next) => {
 
 exports.getAllTours = async (req, res) => {
   try {
-    // Build query object
-    // 1) Filter query
-    let queryObj = { ...req.query };
-    const excludedFields = ['page', 'limit', 'sort', 'fields'];
-    excludedFields.forEach((field) => delete queryObj[field]);
-
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-    queryObj = JSON.parse(queryStr);
-
-    let query = Tour.find(queryObj);
-
-    // 2) Sorting
-    let sortBy;
-    if (req.query.sort) {
-      sortBy = req.query.sort.split(',').join(' ');
-    } else {
-      sortBy = '-ratingsAverage -ratingsQuantity';
-    }
-    query = query.sort(sortBy);
-
-    // 3) Field limiting
-    let fields = '';
-    if (req.query.fields) {
-      fields = req.query.fields.split(',').join(' ');
-    } else {
-      fields = fields.concat('-__v');
-    }
-
-    // Removes '__v' field from query
-    // ERROR: Cannot have a mix of inclusion and exclusion
-    // if (!fields.includes('-__v')) {
-    //   if (fields.includes('__v')) {
-    //     fields = fields.replace('__v', '-__v');
-    //   } else {
-    //     fields = fields.concat(' -__v');
-    //   }
-    // }
-    query = query.select(fields);
-
-    // 4) Pagination
-    let page = parseInt(req.query.page, 10) || 1;
-    let lim = parseInt(req.query.limit, 10) || 10;
-    if (page < 1) {
-      page = 1;
-    }
-    if (lim < 1) {
-      lim = 1;
-    }
-
-    const skip = (page - 1) * lim;
-
-    const numTours = await Tour.countDocuments();
-    if (skip >= numTours) {
-      throw new Error('This page does not exist');
-    }
-
-    query = query.skip(skip).limit(lim);
+    const qBuilder = new QueryBuilder(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
 
     // Execute query
-    const tours = await query;
+    const tours = await qBuilder.query;
 
     // Submit response
     res.status(200).json({
