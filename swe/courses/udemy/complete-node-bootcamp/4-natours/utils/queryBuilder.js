@@ -29,6 +29,7 @@ class QueryBuilder {
     } else {
       sortBy = '-ratingsAverage -ratingsQuantity';
     }
+
     this._query = this._query.sort(sortBy);
 
     return this;
@@ -51,19 +52,20 @@ class QueryBuilder {
     //     fields = fields.concat(' -__v');
     //   }
     // }
+
     this._query = this._query.select(fields);
 
     return this;
   }
 
-  paginate() {
+  paginate(upperLimit = 100) {
     let page = parseInt(this._reqQuery.page, 10) || 1;
-    let lim = parseInt(this._reqQuery.limit, 10) || 10;
+    let lim = parseInt(this._reqQuery.limit, 10) || upperLimit;
     if (page < 1) {
       page = 1;
     }
     if (lim < 1) {
-      lim = 1;
+      lim = upperLimit;
     }
 
     const skip = (page - 1) * lim;
