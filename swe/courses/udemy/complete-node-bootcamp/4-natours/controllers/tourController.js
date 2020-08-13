@@ -16,7 +16,7 @@ exports.getTourStats = async (req, res) => {
   try {
     const stats = await Tour.aggregate([
       {
-        $match: { ratingsAverage: { $gte: 4.5 } },
+        $match: { ratingsAverage: { $gte: 2.0 } },
       },
       {
         $group: {
@@ -107,7 +107,7 @@ exports.getAllTours = async (req, res) => {
       .filter()
       .sort()
       .limitFields()
-      .paginate();
+      .paginate(/** upperLim=*/ 100);
 
     // Execute query
     const tours = await qBuilder.query;
