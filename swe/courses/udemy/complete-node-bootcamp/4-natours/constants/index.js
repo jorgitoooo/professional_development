@@ -1,1 +1,2 @@
-exports.STATUS = require('./statusConstants.js');
+exports.CODE = require('./codeConstants');
+exports.STATUS = require('./statusConstants');
