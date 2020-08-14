@@ -3,9 +3,7 @@ const { CODE, STATUS } = require('../constants');
 
 function handleCastErrorDB(err) {
   const message = `Invalid ${err.path}: ${err.value}`;
-  let error = new AppError(message, CODE.BAD_REQUEST);
-  //   error = Object.assign(error, err);
-  return error;
+  return new AppError(message, CODE.BAD_REQUEST);
 }
 
 function handleDuplicateFieldsErrorDB(err) {
@@ -14,10 +12,7 @@ function handleDuplicateFieldsErrorDB(err) {
 
   const message = `Duplicate field value(s) [${values}]. Please use another value.`;
 
-  let error = new AppError(message, CODE.BAD_REQUEST);
-  //   error = Object.assign(error, err);
-
-  return error;
+  return new AppError(message, CODE.BAD_REQUEST);
 }
 
 function handleValidationErrorDB(err) {
@@ -25,10 +20,7 @@ function handleValidationErrorDB(err) {
 
   const message = `Invalid input data. ${values.join('. ')}`;
 
-  let error = new AppError(message, CODE.BAD_REQUEST);
-  //   error = Object.assign(error, err);
-
-  return error;
+  return new AppError(message, CODE.BAD_REQUEST);
 }
 
 function sendErrorDev(err, res) {
@@ -49,7 +41,7 @@ function sendErrorProd(err, res) {
     });
   } else {
     // Programming/other unknown error
-    // console.error('ERROR 🧨💥', err);
+    console.error('🧨💥ERROR 💥🧨', err);
 
     res.status(CODE.SERVER_ERROR).json({
       status: STATUS.ERROR,
