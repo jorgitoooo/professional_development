@@ -1,5 +1,4 @@
 const { User } = require('../models');
-const { AppError } = require('../utils');
 const { CODE, STATUS } = require('../constants');
 const { catchAsync } = require('../utils');
 
