@@ -1,5 +1,5 @@
+const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 
 const { User } = require('../models');
 const { AppError, catchAsync } = require('../utils');
@@ -17,6 +17,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    passwordChangedDate: req.body.passwordChangedDate, // TEMP:
   });
 
   const token = signToken(newUser._id);
@@ -55,4 +56,52 @@ exports.login = catchAsync(async (req, res, next) => {
     status: STATUS.SUCCESS,
     token,
   });
+});
+
+exports.protect = catchAsync(async (req, res, next) => {
+  // Get token
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  // Test if token exists
+  if (!token) {
+    return next(
+      new AppError(
+        'You are not logged in. Please log in to get access.',
+        CODE.UNAUTHORIZED
+      )
+    );
+  }
+
+  // Verify validity of token
+  const payload = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // Check if user exists
+  const user = await User.findById(payload.id);
+  if (!user) {
+    return next(
+      new AppError(
+        'The user belonging to this token does not exist.',
+        CODE.UNAUTHORIZED
+      )
+    );
+  }
+
+  if (user.changedPasswordAfter(payload.iat)) {
+    return next(
+      new AppError(
+        'Password was changed after token was created. Please log in again.',
+        CODE.UNAUTHORIZED
+      )
+    );
+  }
+
+  // Grant access to protected route
+  req.user = user;
+  next();
 });

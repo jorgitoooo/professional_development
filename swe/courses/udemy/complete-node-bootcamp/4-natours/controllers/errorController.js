@@ -23,6 +23,17 @@ function handleValidationErrorDB(err) {
   return new AppError(message, CODE.BAD_REQUEST);
 }
 
+function handleJWTError() {
+  return new AppError('Invalid token. Please log in again.', CODE.UNAUTHORIZED);
+}
+
+function handleTokenExpiredError() {
+  return new AppError(
+    'Your token expired. Please log in again.',
+    CODE.UNAUTHORIZED
+  );
+}
+
 function sendErrorDev(err, res) {
   res.status(err.statusCode).json({
     status: err.status,
@@ -41,7 +52,7 @@ function sendErrorProd(err, res) {
     });
   } else {
     // Programming/other unknown error
-    console.error('🧨💥ERROR 💥🧨', err);
+    console.error('🧨💥ERROR 💥🧨\n  ', err);
 
     res.status(CODE.SERVER_ERROR).json({
       status: STATUS.ERROR,
@@ -64,8 +75,12 @@ function errorHandler(err, req, res, next) {
       error = handleCastErrorDB(error);
     } else if (error.name === 'ValidationError') {
       error = handleValidationErrorDB(error);
+    } else if (error.name === 'JsonWebTokenError') {
+      error = handleJWTError(error);
+    } else if (error.name === 'TokenExpiredError') {
+      error = handleTokenExpiredError();
     } else if (error.code === 11000) {
-      error = handleDuplicateFieldsErrorDB(error);
+      error = handleDuplicateFieldsErrorDB();
     }
 
     sendErrorProd(error, res);

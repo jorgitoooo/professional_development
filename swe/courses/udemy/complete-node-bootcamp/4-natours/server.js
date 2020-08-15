@@ -5,7 +5,7 @@ dotenv.config({ path: './config.env' });
 
 process.on('uncaughtException', (err) => {
   console.log(
-    `🧨💥 UNHANDLED REJECTION 💥🧨\n\t${err.name}: ${err.message}\n\tShutting down...`
+    `🧨💥 UNHANDLED REJECTION 💥🧨\n  ${err.name}: ${err.message}\n  Shutting down...`
   );
   process.exit(1);
 });
