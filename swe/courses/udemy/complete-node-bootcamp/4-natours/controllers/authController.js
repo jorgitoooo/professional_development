@@ -12,6 +12,22 @@ function signToken(id) {
   });
 }
 
+function signAndSendToken(user, statusCode, res) {
+  const token = signToken(user._id);
+
+  res.status(CODE.CREATED).json({
+    status: STATUS.SUCCESS,
+    token,
+    data: {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    },
+  });
+}
+
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -22,15 +38,17 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordChangedDate: req.body.passwordChangedDate, // TEMP:
   });
 
-  const token = signToken(newUser._id);
+  signAndSendToken(newUser, CODE.CREATED, res);
 
-  res.status(CODE.CREATED).json({
-    status: STATUS.SUCCESS,
-    token,
-    data: {
-      user: newUser,
-    },
-  });
+  // const token = signToken(newUser._id);
+
+  // res.status(CODE.CREATED).json({
+  //   status: STATUS.SUCCESS,
+  //   token,
+  //   data: {
+  //     user: newUser,
+  //   },
+  // });
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -52,12 +70,13 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) Generate token and response
-  const token = signToken(user._id);
+  signAndSendToken(user, CODE.OK, res);
+  // const token = signToken(user._id);
 
-  res.status(CODE.OK).json({
-    status: STATUS.SUCCESS,
-    token,
-  });
+  // res.status(CODE.OK).json({
+  //   status: STATUS.SUCCESS,
+  //   token,
+  // });
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -204,9 +223,35 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // Log user in, send JWT
-  const token = signToken(user._id);
-  res.status(CODE.OK).json({
-    status: STATUS.SUCCESS,
-    token,
-  });
+  signAndSendToken(user, CODE.OK, res);
+  // const token = signToken(user._id);
+  // res.status(CODE.OK).json({
+  //   status: STATUS.SUCCESS,
+  //   token,
+  // });
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // Get user
+  const user = await User.findById(req.user._id).select('+password');
+  const match = await user.passwordMatch(
+    req.body.currentPassword,
+    user.password
+  );
+  if (!match) {
+    return next(new AppError('Password does not match', CODE.BAD_REQUEST));
+  }
+
+  // Update password
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+
+  // Generate JWT and send to user
+  signAndSendToken(user, CODE.OK, res);
+  // const token = signToken(user._id);
+  // res.status(CODE.OK).json({
+  //   status: STATUS.SUCCESS,
+  //   token,
+  // });
 });
