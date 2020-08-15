@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
 
+const { ROLE } = require('../constants');
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -15,6 +17,11 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, 'Please enter a valid email address'],
   },
   photo: String,
+  role: {
+    type: String,
+    enum: [ROLE.USER, ROLE.GUIDE, ROLE.LEAD_GUIDE, ROLE.ADMIN],
+    default: ROLE.USER,
+  },
   password: {
     type: String,
     required: [true, 'Please enter a password'],

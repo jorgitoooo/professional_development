@@ -1,6 +1,8 @@
 const express = require('express');
 const { authController, tourController } = require('../controllers');
 
+const { ROLE } = require('../constants');
+
 const router = express.Router();
 
 // Middleware on params
@@ -23,6 +25,10 @@ router
   .route('/:id')
   .get(tourController.getTour)
   .patch(tourController.updateTour)
-  .delete(tourController.deleteTour);
+  .delete(
+    authController.protect,
+    authController.restrictTo(ROLE.ADMIN, ROLE.LEAD_GUIDE),
+    tourController.deleteTour
+  );
 
 module.exports = router;

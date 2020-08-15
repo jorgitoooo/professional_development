@@ -16,6 +16,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
+    role: req.body.role,
     passwordConfirm: req.body.passwordConfirm,
     passwordChangedDate: req.body.passwordChangedDate, // TEMP:
   });
@@ -105,3 +106,18 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = user;
   next();
 });
+
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      console.log('-- FORBIDDEN');
+      return next(
+        new AppError(
+          'You do not have permission to perform this action',
+          CODE.FORBIDDEN
+        )
+      );
+    }
+    next();
+  };
+};
