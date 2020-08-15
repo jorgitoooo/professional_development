@@ -1,3 +1,5 @@
-exports.SUCCESS = 'success';
-exports.FAIL = 'fail';
-exports.ERROR = 'error';
+module.exports = {
+  SUCCESS: 'success',
+  FAIL: 'fail',
+  ERROR: 'error',
+};
