@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
@@ -40,12 +41,22 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangedDate: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
 
 userSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, /** salt=*/ 12);
     this.passwordConfirm = undefined; // Only used to confirm equal pwd
+  }
+  next();
+});
+
+userSchema.pre('save', function (next) {
+  if (this.isModified('password') && !this.isNew) {
+    // Ensures that the JWT is created after th password has been changed
+    this.passwordChangedDate = Date.now() - 1000;
   }
   next();
 });
@@ -63,6 +74,16 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     return changedTimestamp > JWTTimestamp;
   }
   return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);
