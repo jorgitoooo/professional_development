@@ -1,6 +1,6 @@
 const { User } = require('../models');
 const { CODE, STATUS } = require('../constants');
-const { catchAsync } = require('../utils');
+const { AppError, catchAsync } = require('../utils');
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
@@ -11,6 +11,47 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
     results: users.length,
     data: {
       users,
+    },
+  });
+});
+
+function filterObj(obj, ...fields) {
+  const res = {};
+  // fields.forEach((field) => {
+  //   if (obj[field]) {
+  //     res[field] = obj[field];
+  //   }
+  // });
+  Object.keys(obj).forEach((field) => {
+    if (fields.includes(field)) {
+      res[field] = obj[field];
+    }
+  });
+  return res;
+}
+
+exports.updateMe = catchAsync(async (req, res, next) => {
+  // Password cannot be updated in this route
+  if (req.body.password || req.body.passwordConfirm) {
+    return next(
+      new AppError(
+        'This route is not for password updates. Please use /updatePassword',
+        CODE.BAD_REQUEST
+      )
+    );
+  }
+
+  const filteredBody = filterObj(req.body, 'name', 'email');
+  console.log(req.user, filteredBody);
+  const updatedUser = await User.findByIdAndUpdate(req.user._id, filteredBody, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(CODE.OK).json({
+    status: STATUS.SUCCESS,
+    data: {
+      user: updatedUser,
     },
   });
 });
