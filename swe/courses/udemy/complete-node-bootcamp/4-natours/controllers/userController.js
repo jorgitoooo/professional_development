@@ -22,11 +22,6 @@ function filterObj(obj, ...fields) {
       res[field] = obj[field];
     }
   });
-  // Object.keys(obj).forEach((field) => {
-  //   if (fields.includes(field)) {
-  //     res[field] = obj[field];
-  //   }
-  // });
   return res;
 }
 

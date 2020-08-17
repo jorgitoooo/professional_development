@@ -6,6 +6,8 @@ const { User } = require('../models');
 const { AppError, catchAsync, sendEmail } = require('../utils');
 const { CODE, STATUS } = require('../constants');
 
+const EXPIRES_IN_MS = process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000;
+
 function signToken(id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -14,6 +16,20 @@ function signToken(id) {
 
 function signAndSendToken(user, statusCode, res) {
   const token = signToken(user._id);
+
+  const cookieOptions = {
+    expires: new Date(Date.now() + EXPIRES_IN_MS),
+    httpOnly: true,
+  };
+
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true;
+  }
+
+  res.cookie('jwt', token, cookieOptions);
+
+  // Removes password from user obj.
+  user.password = undefined;
 
   res.status(CODE.CREATED).json({
     status: STATUS.SUCCESS,
@@ -39,16 +55,6 @@ exports.signup = catchAsync(async (req, res, next) => {
   });
 
   signAndSendToken(newUser, CODE.CREATED, res);
-
-  // const token = signToken(newUser._id);
-
-  // res.status(CODE.CREATED).json({
-  //   status: STATUS.SUCCESS,
-  //   token,
-  //   data: {
-  //     user: newUser,
-  //   },
-  // });
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -71,12 +77,6 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 3) Generate token and response
   signAndSendToken(user, CODE.OK, res);
-  // const token = signToken(user._id);
-
-  // res.status(CODE.OK).json({
-  //   status: STATUS.SUCCESS,
-  //   token,
-  // });
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -224,11 +224,6 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
   // Log user in, send JWT
   signAndSendToken(user, CODE.OK, res);
-  // const token = signToken(user._id);
-  // res.status(CODE.OK).json({
-  //   status: STATUS.SUCCESS,
-  //   token,
-  // });
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
@@ -249,9 +244,4 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 
   // Generate JWT and send to user
   signAndSendToken(user, CODE.OK, res);
-  // const token = signToken(user._id);
-  // res.status(CODE.OK).json({
-  //   status: STATUS.SUCCESS,
-  //   token,
-  // });
 });
