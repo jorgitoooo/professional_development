@@ -17,16 +17,16 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 
 function filterObj(obj, ...fields) {
   const res = {};
-  // fields.forEach((field) => {
-  //   if (obj[field]) {
-  //     res[field] = obj[field];
-  //   }
-  // });
-  Object.keys(obj).forEach((field) => {
-    if (fields.includes(field)) {
+  fields.forEach((field) => {
+    if (field in obj) {
       res[field] = obj[field];
     }
   });
+  // Object.keys(obj).forEach((field) => {
+  //   if (fields.includes(field)) {
+  //     res[field] = obj[field];
+  //   }
+  // });
   return res;
 }
 
@@ -53,6 +53,14 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     data: {
       user: updatedUser,
     },
+  });
+});
+
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user._id, { active: false });
+  res.status(CODE.NO_CONTENT).json({
+    status: STATUS.SUCCESS,
+    data: null,
   });
 });
 
