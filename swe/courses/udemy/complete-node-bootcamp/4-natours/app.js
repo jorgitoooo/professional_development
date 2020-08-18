@@ -7,7 +7,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 
 const { errorController } = require('./controllers');
-const { userRouter, tourRouter } = require('./routes');
+const { reviewRouter, userRouter, tourRouter } = require('./routes');
 const { AppError } = require('./utils');
 const { CODE, WHITELIST } = require('./constants');
 
@@ -50,6 +50,7 @@ app.use(
 app.use(express.static(`${__dirname}/public`));
 
 // 3) ROUTES
+app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 

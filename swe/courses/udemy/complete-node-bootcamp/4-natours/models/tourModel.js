@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 
-const User = require('./userModel');
+// const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -104,7 +104,12 @@ const tourSchema = new mongoose.Schema(
         day: Number,
       },
     ],
-    guides: Array,
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
@@ -116,31 +121,41 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
-// DOCUMENT MIDDLEWARE/HOOK: Runs before save() & create()
+// Document middleware/hook: Runs before save() & create()
 tourSchema.pre('save', function (next) {
   // 'this' points to the document to be saved
   this.slug = slugify(this.name, { lower: true });
   next();
 });
 
-tourSchema.pre('save', async function (next) {
-  const guidesPromises = this.guides.map(
-    async (guideId) => await User.findById(guideId)
-  );
-  this.guides = await Promise.all(guidesPromises);
-  next();
-});
+// Document middleware/hook: Embeds user docs into tour docs
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(
+//     async (guideId) => await User.findById(guideId)
+//   );
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
 
-// DOCUMENT MIDDLEWARE/HOOK: Runs after save() & create()
+// Document middleware/hook: Runs after save() & create()
 // tourSchema.post('save', function (doc, next) {
 //   console.log(doc);
 //   next();
 // });
 
-// QUERY MIDDLEWARE: Runs on queries
+// Query middleware: Runs on queries
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
   this.start = Date.now();
+  next();
+});
+
+// Query middleware: Embeds guides into tours docs
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedDate',
+  });
   next();
 });
 

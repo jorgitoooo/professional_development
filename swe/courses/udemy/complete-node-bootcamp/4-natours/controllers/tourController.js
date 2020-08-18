@@ -1,7 +1,6 @@
 const { Tour } = require('../models');
-const { AppError, QueryBuilder } = require('../utils');
+const { AppError, QueryBuilder, catchAsync } = require('../utils');
 const { CODE, STATUS } = require('../constants');
-const { catchAsync } = require('../utils');
 
 exports.aliasTopTours = (req, res, next) => {
   const query = {
@@ -110,6 +109,7 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 
 exports.getTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findById(req.params.id);
+
   if (!tour) {
     return next(
       new AppError(`No tour found with id ${req.params.id}`, CODE.NOT_FOUND)
