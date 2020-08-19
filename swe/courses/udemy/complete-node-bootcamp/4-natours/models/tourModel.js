@@ -121,6 +121,13 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// Virtual populate: Gives a way to populate tour with child references
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
+});
+
 // Document middleware/hook: Runs before save() & create()
 tourSchema.pre('save', function (next) {
   // 'this' points to the document to be saved

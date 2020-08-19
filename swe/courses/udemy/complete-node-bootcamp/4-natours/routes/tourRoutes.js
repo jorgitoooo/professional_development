@@ -1,4 +1,5 @@
 const express = require('express');
+const reviewRouter = require('./reviewRoutes');
 const { authController, tourController } = require('../controllers');
 
 const { ROLE } = require('../constants');
@@ -7,6 +8,9 @@ const router = express.Router();
 
 // Middleware on params
 // router.param('id', tourController.checkID);
+
+// Nested route
+router.use('/:tourId/reviews', reviewRouter);
 
 router
   .route('/top-5-cheapest')
