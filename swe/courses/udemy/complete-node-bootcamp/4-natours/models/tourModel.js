@@ -58,7 +58,6 @@ const tourSchema = new mongoose.Schema(
       type: String,
       trim: true,
       required: [true, 'A tour must have a summary'],
-      unique: true,
     },
     description: {
       type: String,
@@ -116,6 +115,9 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
 
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
