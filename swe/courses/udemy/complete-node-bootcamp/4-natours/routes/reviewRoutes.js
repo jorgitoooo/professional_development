@@ -4,11 +4,13 @@ const { ROLE } = require('../constants');
 
 const router = express.Router({ mergeParams: true });
 
+// All routes below this middleware require authentication
+router.use(authController.protect);
+
 router
   .route('/')
   .get(reviewController.getAllReviews)
   .post(
-    authController.protect,
     authController.restrictTo(ROLE.USER),
     reviewController.setTourUserIds,
     reviewController.createReview
@@ -17,7 +19,13 @@ router
 router
   .route('/:id')
   .get(reviewController.getReview)
-  .patch(reviewController.updateReview)
-  .delete(reviewController.deleteReview);
+  .patch(
+    authController.restrictTo(ROLE.USER, ROLE.ADMIN),
+    reviewController.updateReview
+  )
+  .delete(
+    authController.restrictTo(ROLE.USER, ROLE.ADMIN),
+    reviewController.deleteReview
+  );
 
 module.exports = router;

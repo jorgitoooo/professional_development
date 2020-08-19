@@ -1,29 +1,23 @@
 const express = require('express');
 const { authController, userController } = require('../controllers');
+const { ROLE } = require('../constants');
 
 const router = express.Router();
 
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
-
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 
-router.patch(
-  '/updatePassword',
-  authController.protect,
-  authController.updatePassword
-);
+// All routes below this middleware require authentication
+router.use(authController.protect);
+router.get('/me', userController.getMe, userController.getUser);
+router.patch('/updatePassword', authController.updatePassword);
+router.patch('/updateMe', userController.updateMe);
+router.delete('/deleteMe', userController.deleteMe);
 
-router.get(
-  '/me',
-  authController.protect,
-  userController.getMe,
-  userController.getUser
-);
-router.patch('/updateMe', authController.protect, userController.updateMe);
-router.delete('/deleteMe', authController.protect, userController.deleteMe);
-
+// All routes below this middleware can only be accessed by an admin
+router.use(authController.restrictTo(ROLE.ADMIN));
 router
   .route('/')
   .get(userController.getAllUsers)
